@@ -1,26 +1,37 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
+/* eslint-disable curly */
 import * as vscode from 'vscode';
+import { createATS, createSQL } from './gmf_main';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+	//현재 보고 있는 에디터 내의 쿼리에 대해 포매팅
+	//Formatting for queries within the editor you are currently viewing
+	let disposable = vscode.commands.registerCommand('gm-sql-formatter.gmformat', async () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor)
+			vscode.window.showErrorMessage('No current editor to format');
+		else
+		{
+			const doc = editor.document;
+			const sel = editor.selection;
+			let text: string = '';
+			if (!sel || (sel.start.line === sel.end.line && sel.start.character === sel.end.character))
+				text = doc.getText();
+			else
+				text = doc.getText(sel);
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "gm-sql-formatter" is now active!');
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('gm-sql-formatter.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from gm-sql-formatter!');
+			let ast: any = createATS(text);
+			if (ast === null)
+				vscode.window.showErrorMessage("Cannot parse current text as SQL");
+			else
+			{
+				const set = { language : 'sql', content : createSQL(ast) };
+				const newDoc = await vscode.workspace.openTextDocument(set);
+				vscode.window.showTextDocument(newDoc);
+			}
+		}
 	});
 
 	context.subscriptions.push(disposable);
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {}

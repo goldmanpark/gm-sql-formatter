@@ -1,5 +1,6 @@
 /* eslint-disable curly */
 import * as nsp from 'node-sql-parser';
+import * as mgfd from './gmf_definition';
 import * as gmfc from './gmf_clause';
 
 const s2 = '  ';

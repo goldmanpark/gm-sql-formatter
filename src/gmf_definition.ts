@@ -15,12 +15,10 @@ export enum ClauseType{
 
 export interface Statement{
     depth: number,
-    type: StatementType,
-    item: object
+    type: StatementType
 }
 
 export interface Clause{
     depth: number,
     type: ClauseType
-    item: object
 }

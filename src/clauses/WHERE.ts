@@ -4,9 +4,10 @@ export class WHERE implements Clause
 {
     depth: number;
     type: ClauseType = ClauseType.where;
-    where: string = '';
+    lines: string[];
 
     constructor(d: number){
         this.depth = d;
+        this.lines = new Array<string>();
     }
 }

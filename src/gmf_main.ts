@@ -1,13 +1,6 @@
 /* eslint-disable curly */
 import * as nsp from 'node-sql-parser';
-import * as gmfs from './gmf_statement';
-
-const s2 = '  ';
-const s3 = '   ';
-const s4 = '    ';
-const s5 = '     ';
-const s6 = '      ';
-const rn = '\r\n';
+import { SELECT } from './statements/SELECT';
 
 export function createATS(query: string): nsp.AST | nsp.AST[] | null
 {
@@ -27,8 +20,29 @@ export function createSQL(ast: nsp.AST | nsp.AST[]): string
 {
     let sql = '';
     if(ast instanceof Array)
-        ast.forEach(x => { sql += gmfs.formatSQL(x);});
+        ast.forEach(x => { sql += formatSQL(x);});
     else
-        sql = gmfs.formatSQL(ast);
+        sql = formatSQL(ast);
     return sql;
+}
+
+export function formatSQL(ast: nsp.AST, depth: number = 0): string
+{
+    console.log(ast);
+    let parser: nsp.Parser = new nsp.Parser();
+    try
+    {
+        switch (ast.type)
+        {
+            case 'select':
+                let item = new SELECT(depth, ast);
+                return item.getSQL();
+            default:
+                throw new Error('non select');
+        }
+    }
+    catch (error)
+    {
+        return parser.sqlify(ast);
+    }
 }

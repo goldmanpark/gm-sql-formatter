@@ -1,3 +1,10 @@
+export const s2 = '  ';
+export const s3 = '   ';
+export const s4 = '    ';
+export const s5 = '     ';
+export const s6 = '      ';
+export const rn = '\r\n';
+
 export enum StatementType{
     select,
     insert,
@@ -6,7 +13,6 @@ export enum StatementType{
 }
 
 export enum ClauseType{
-    columns,
     from,
     where,
     groupby,
@@ -15,10 +21,12 @@ export enum ClauseType{
 
 export interface Statement{
     depth: number,
-    type: StatementType
+    type: StatementType,
+    lines: string[]
 }
 
 export interface Clause{
     depth: number,
-    type: ClauseType
+    type: ClauseType,
+    lines: string[]
 }

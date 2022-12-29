@@ -1,6 +1,6 @@
 /* eslint-disable curly */
 import * as nsp from 'node-sql-parser';
-import { SELECT } from './statements/SELECT';
+import { Statement } from './Elements/Statement';
 
 export function createATS(query: string): nsp.AST | nsp.AST[] | null
 {
@@ -28,21 +28,14 @@ export function createSQL(ast: nsp.AST | nsp.AST[]): string
 
 export function formatSQL(ast: nsp.AST, depth: number = 0): string
 {
-    console.log(ast);
-    let parser: nsp.Parser = new nsp.Parser();
     try
     {
-        switch (ast.type)
-        {
-            case 'select':
-                let item = new SELECT(depth, ast);
-                return item.getSQL();
-            default:
-                throw new Error('non select');
-        }
+        let item = new Statement(depth, ast);
+        return item.getSQL();
     }
     catch (error)
     {
+        let parser: nsp.Parser = new nsp.Parser();
         return parser.sqlify(ast);
     }
 }

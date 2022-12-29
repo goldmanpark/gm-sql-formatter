@@ -1,37 +1,33 @@
 /* eslint-disable curly */
 import * as nsp from 'node-sql-parser';
-import { formatSQL } from '../gmf_main';
-import { Statement, StatementType } from '../gmf_definition';
-import { FROM } from '../clauses/FROM';
-import { WHERE } from '../clauses/WHERE';
+import { formatSQL } from '../../gmf_main';
+import { Clause, ClauseType, Element, ElementType } from '../definition';
 
-export class SELECT implements Statement
+export class SELECT implements Clause
 {
-    depth: number;
-    type: StatementType = StatementType.select;
-    lines: string[];
+    elementType = ElementType.clause;
+    clauseType = ClauseType.select;
+    items: Array<string | Element>;
 
-    constructor(d: number, ast: nsp.Select)
+    distinct: boolean = false;
+    top: string = '';
+
+    constructor(ast: nsp.Select, depth: number)
     {
-        this.depth = d;
-        this.lines = new Array<string>();
+        this.items = new Array<string | Element>();
+        this.distinct = ast.distinct !== null;
 
-        let firstLine: string = '';
-        if (ast.distinct !== null)
-            firstLine += '  DISTINCT';
         if (!(ast.columns instanceof Array))
-            firstLine += '*';
+            this.items.push('*');
         else
-        {            
-            firstLine += this.formatCOLUMN(ast.columns[0]);
-            for (let i = 1; i < ast.columns.length; i++)
-            {
-                this.lines.push(this.formatCOLUMN(ast.columns[i]));
-            }
+        {
+            ast.columns.forEach(x => {
+                this.items.push(this.formatCOLUMN(x, depth));
+            });
         }
     }
 
-    formatCOLUMN(col: nsp.Column): string
+    formatCOLUMN(col: nsp.Column, depth: number): string | Element
     {
         let str = '';
         let expr: any = col.expr;
@@ -59,7 +55,7 @@ export class SELECT implements Statement
         else if(expr instanceof Object)
         {
             //subquery
-            str += formatSQL(expr.ast as nsp.AST, this.depth + 1);
+            str += formatSQL(expr.ast as nsp.AST, depth + 1);
         }
 
         str += col.as === null ? '' : ' AS ' + col.as;
@@ -67,6 +63,15 @@ export class SELECT implements Statement
     }
 
     getSQL(): string{
-        return '';
+        let sql = '';
+        this.items.forEach(x => {
+            if(typeof(x) === 'string'){
+
+            }
+            else{
+
+            }
+        });
+        return sql;
     }
 }

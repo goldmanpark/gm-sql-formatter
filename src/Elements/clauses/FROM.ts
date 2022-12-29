@@ -1,18 +1,17 @@
 /* eslint-disable curly */
 import * as nsp from 'node-sql-parser';
-import { formatSQL } from '../gmf_main';
-import { Clause, ClauseType } from '../gmf_definition';
+import { formatSQL } from '../../gmf_main';
+import { Clause, ClauseType, ElementType, Element } from '../definition';
 
 export class FROM implements Clause
 {
-    depth: number;
-    type: ClauseType = ClauseType.from;
-    lines: string[];
+    elementType = ElementType.clause;
+    clauseType = ClauseType.from;
+    items: Array<string | Element>;
 
-    constructor(d: number, from: Array<nsp.From | nsp.Dual | any>)
+    constructor(from: Array<nsp.From | nsp.Dual | any>, depth: number)
     {
-        this.depth = d;
-        this.lines = new Array<string>();
+        this.items = new Array<string>();
 
         let firstLine = 'FROM';
         if(from[0].type === 'dual') firstLine += 'DUAL';
@@ -29,7 +28,7 @@ export class FROM implements Clause
         }
         for (let i = 1; i < from.length; i++)
         {
-            this.lines.push(this.formatFROM(from[i]));
+            this.items.push(this.formatFROM(from[i]));
         }
     }
 
@@ -50,5 +49,18 @@ export class FROM implements Clause
             return '';
         }
         return '';
+    }
+
+    getSQL(): string{
+        let sql = '';
+        this.items.forEach(x => {
+            if(typeof(x) === 'string'){
+
+            }
+            else{
+
+            }
+        });
+        return sql;
     }
 }

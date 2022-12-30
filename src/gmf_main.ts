@@ -30,11 +30,12 @@ export function formatSQL(ast: nsp.AST, depth: number = 0): string
 {
     try
     {
-        let item = new Statement(depth, ast);
+        let item = new Statement(ast, depth);
         return item.getSQL();
     }
     catch (error)
     {
+        console.log(error);
         let parser: nsp.Parser = new nsp.Parser();
         return parser.sqlify(ast);
     }

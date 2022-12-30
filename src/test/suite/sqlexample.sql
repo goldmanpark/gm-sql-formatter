@@ -1,6 +1,6 @@
 select (select sysdate from dual) from dual
 
-select sysdate from dual where 1=1 and 2=2 and 3 <> 4;
+select sysdate, 1, 'AS' from dual where 1=1 and 2=2 and 3 <> 4;
 
 --https://www.complexsql.com/complex-sql-queries-examples-with-answers/
 Select E.id, E.name as ENAME from Employee E where Rowid= (select min(Rowid) from Employee);

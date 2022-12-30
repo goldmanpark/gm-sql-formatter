@@ -1,7 +1,7 @@
 /* eslint-disable curly */
 import * as nsp from 'node-sql-parser';
-import { formatSQL } from '../../gmf_main';
-import { Clause, ClauseType, ElementType, Element } from '../definition';
+import { Clause, ClauseType, ElementType, Element, S4, S2, S3, RN } from '../definition';
+import { Statement } from '../Statement';
 
 export class FROM implements Clause
 {
@@ -11,28 +11,15 @@ export class FROM implements Clause
 
     constructor(from: Array<nsp.From | nsp.Dual | any>, depth: number)
     {
-        this.items = new Array<string>();
+        this.items = new Array<string | Element>();
 
-        let firstLine = 'FROM';
-        if(from[0].type === 'dual') firstLine += 'DUAL';
-        else if (from[0].table !== undefined)
+        for (let i = 0; i < from.length; i++)
         {
-            if (from[0].as === null)
-                firstLine += from[0].table;
-            else
-                firstLine += (from[0].table + ' AS ' + from[0].as);
-        }
-        else if(from[0].expr !== undefined)
-        {
-            //subquery
-        }
-        for (let i = 1; i < from.length; i++)
-        {
-            this.items.push(this.formatFROM(from[i]));
+            this.items.push(this.createFROM(from[i], depth));
         }
     }
 
-    formatFROM(item: nsp.From | nsp.Dual | any): string
+    createFROM(item: nsp.From | nsp.Dual | any, depth: number): string | Element
     {
         if (item.type === 'dual') 
             return 'DUAL';
@@ -46,21 +33,27 @@ export class FROM implements Clause
         else if(item.expr !== undefined)
         {
             //subquery
-            return '';
+            return new Statement(item as nsp.AST, depth + 1);
         }
         return '';
     }
 
     getSQL(): string{
-        let sql = '';
-        this.items.forEach(x => {
-            if(typeof(x) === 'string'){
+        let sql = S4 + S2 + 'FROM' + S2;
 
-            }
-            else{
-
-            }
-        });
+        if(typeof(this.items[0]) === 'string')
+            sql += (this.items[0] + RN);
+        else
+            sql += '(' + this.items[0].getSQL() + ')';
+        
+        for (let i = 1; i < this.items.length; i++) 
+        {
+            const item = this.items[i];
+            if(typeof(item) === 'string')
+                return S4 + ',' + S3 + item + RN;
+            else
+                return '(' + item.getSQL() + ')';
+        }
         return sql;
     }
 }

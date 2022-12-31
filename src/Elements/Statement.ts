@@ -10,16 +10,16 @@ export class Statement implements Element{
     items: Array<Clause>;
     alias: string | null;
 
-    constructor(ast: nsp.AST, d: number)
+    constructor(ast: nsp.AST, depth: number)
     {
-        this.depth = d;
+        this.depth = depth;
         this.items = new Array<Clause>();
         this.alias = null;
 
         switch (ast.type) {
             case 'select':
-                this.items.push(new SELECT(ast, 0));
-                if(ast.from !== null) this.items.push(new FROM(ast.from, 0));
+                this.items.push(new SELECT(ast, this.depth));
+                if(ast.from !== null) this.items.push(new FROM(ast.from, this.depth));
                 //this.items.push(new WHERE(ast.where, 0));
                 break;
             default:

@@ -7,14 +7,16 @@ export class SELECT implements Clause
 {
     elementType = ElementType.clause;
     clauseType = ClauseType.select;
-    items: Array<string | Element>;
+    items: Array<string | Statement>;
+    depth: number;
 
     distinct: boolean = false;
     top: number = 0;
 
     constructor(ast: nsp.Select, depth: number)
     {
-        this.items = new Array<string | Element>();
+        this.items = new Array<string | Statement>();
+        this.depth = depth;
         this.distinct = ast.distinct !== null;
 
         if(ast.columns === '*')
@@ -22,12 +24,12 @@ export class SELECT implements Clause
         else if (ast.columns instanceof Array)
         {
             ast.columns.forEach(x => {
-                this.items.push(this.createCOLUMN(x, depth));
+                this.items.push(this.createCOLUMN(x));
             });
         }
     }
 
-    createCOLUMN(col: nsp.Column, depth: number): string | Element
+    createCOLUMN(col: nsp.Column): string | Statement
     {
         try 
         {
@@ -61,7 +63,7 @@ export class SELECT implements Clause
                     if(expr.ast !== null)
                     {
                         //subquery
-                        let sq = new Statement(expr.ast as nsp.AST, depth + 1);
+                        let sq = new Statement(expr.ast as nsp.AST, this.depth + 1);
                         sq.alias = col.as;
                         return sq;
                     }
@@ -80,22 +82,38 @@ export class SELECT implements Clause
 
     getSQL(): string
     {
+        let indent = new Array(this.depth).fill(S4 + S4).join('') + (this.depth > 0 ? S4 : '');
         let sql = S4 + 'SELECT' + S2;
         if(this.distinct) sql += 'DISTINCT';
         if(this.top > 0) sql += ('TOP ' + this.top.toString());
 
+        //for first line
         if(typeof(this.items[0]) === 'string')
             sql += (this.items[0] + RN);
         else
-            sql += '(' + this.items[0].getSQL() + ')';
+        {
+            //Subquery(Statement)
+            sql += '(' + S3 + this.items[0].getSQL().trim() + ')';
+            if (this.items[0].alias !== null) 
+                sql += (' AS ' + this.items[0].alias);
+            sql += RN;
+        }
 
+        //rest columns
         for (let i = 1; i < this.items.length; i++)
         {
             const item = this.items[i];
             if(typeof(item) === 'string')
-                sql += (S4 + S4 + ',' + S3 + item + RN);
+                sql += indent + S4 + S4 + ',' + S3 + item + RN;
             else
-                sql += '(' + item.getSQL() + ')';
+            {
+                //Subquery
+                sql += indent + S4 + S4 + ',' + S3 + '(' + S3 + item.getSQL().trim();
+                sql += indent + ')';
+                if (item.alias !== null) 
+                    sql += (' AS ' + item.alias);
+                sql += RN;
+            }
         }
         return sql;
     }

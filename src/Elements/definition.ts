@@ -23,6 +23,7 @@ export enum ClauseType{
 
 export interface Element{
     readonly elementType: ElementType
+    readonly depth: number
     getSQL: () => string
 }
 

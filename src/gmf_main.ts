@@ -23,7 +23,7 @@ export function createSQL(ast: nsp.AST | nsp.AST[]): string
         ast.forEach(x => { sql += formatSQL(x);});
     else
         sql = formatSQL(ast);
-    return sql;
+    return sql; 
 }
 
 export function formatSQL(ast: nsp.AST, depth: number = 0): string

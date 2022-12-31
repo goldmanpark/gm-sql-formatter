@@ -1,6 +1,22 @@
-select (select sysdate from dual) from dual
+select 'AAA' AS X, 1 AS Y,  (select sysdate from dual) AS Z  from dual where 1=1 and 2=2 and 3 <> 4;
 
-select sysdate, 1, 'AS' from dual where 1=1 and 2=2 and 3 <> 4;
+    SELECT  (   SELECT  sysdate
+                    ,   1
+                    ,   'AS'
+                  FROM  DUAL
+            ) AS X
+        ,   'AAA' AS Y
+        ,   1313 AS Z
+      FROM  DUAL
+     WHERE  1 = 1
+       AND  2 = 2
+       AND  3 <> 4
+
+    SELECT  X.*
+      FROM  (   SELECT  sysdate
+                    ,   'AAA'
+                  FROM  DUAL
+            ) AS X
 
 --https://www.complexsql.com/complex-sql-queries-examples-with-answers/
 Select E.id, E.name as ENAME from Employee E where Rowid= (select min(Rowid) from Employee);

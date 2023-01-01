@@ -1,6 +1,6 @@
 /* eslint-disable curly */
 import * as nsp from 'node-sql-parser';
-import { Clause, ClauseType, ElementType, Element, S4, S2, S3, RN } from '../definition';
+import { Clause, ClauseType, ElementType, S4, S2, S3, RN } from '../definition';
 import { Statement } from '../Statement';
 
 export class FROM implements Clause
@@ -35,7 +35,7 @@ export class FROM implements Clause
         else if(item.expr.ast !== null)
         {
             //subquery
-            return new Statement(item as nsp.AST, this.depth + 1);
+            return new Statement(item.expr.ast, this.depth + 1);
         }
         return '';
     }
@@ -48,7 +48,13 @@ export class FROM implements Clause
         if(typeof(this.items[0]) === 'string')
             sql += (this.items[0] + RN);
         else
-            sql += '(' + this.items[0].getSQL() + ')';
+        {
+            //Subquery(Statement)
+            sql += '(' + this.items[0].getSQL() + indent + S4 + S4 + S4 + ')';
+            if (this.items[0].alias !== null) 
+                sql += ' AS ' + this.items[0].alias;
+        }
+            
         
         //rest columns
         for (let i = 1; i < this.items.length; i++) 
@@ -58,9 +64,10 @@ export class FROM implements Clause
                 sql += indent + S4 + ',' + S3 + item + RN;
             else
             {
-                sql += indent + S4 + ',' + S3 + '(' + S3 + item.getSQL().trim() + ')';
+                sql += indent + S4 + ',' + S3 + '(' + S3 + item.getSQL().trim() + RN;
+                sql += indent + S4 + S4 + S4 + ')';
                 if (item.alias !== null) 
-                    sql += (' AS ' + item.alias);
+                    sql += ' AS ' + item.alias;
                 sql += RN;
             }
         }

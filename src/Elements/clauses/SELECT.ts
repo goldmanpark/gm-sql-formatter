@@ -1,6 +1,6 @@
 /* eslint-disable curly */
 import * as nsp from 'node-sql-parser';
-import { Clause, ClauseType, Element, ElementType, RN, S2, S3, S4 } from '../definition';
+import { Clause, ClauseType, ElementType, RN, S2, S3, S4 } from '../definition';
 import { Statement } from '../Statement';
 
 export class SELECT implements Clause
@@ -93,9 +93,10 @@ export class SELECT implements Clause
         else
         {
             //Subquery(Statement)
-            sql += '(' + S3 + this.items[0].getSQL().trim() + ')';
+            sql += '(' + S3 + this.items[0].getSQL().trim() + RN;
+            sql += indent + S4 + S4 + S4 + ')';
             if (this.items[0].alias !== null) 
-                sql += (' AS ' + this.items[0].alias);
+                sql += ' AS ' + this.items[0].alias;
             sql += RN;
         }
 
@@ -108,10 +109,10 @@ export class SELECT implements Clause
             else
             {
                 //Subquery
-                sql += indent + S4 + S4 + ',' + S3 + '(' + S3 + item.getSQL().trim();
-                sql += indent + ')';
+                sql += indent + S4 + S4 + ',' + S3 + '(' + S3 + item.getSQL().trim() + RN;
+                sql += indent + S4 + S4 + S4 + ')';
                 if (item.alias !== null) 
-                    sql += (' AS ' + item.alias);
+                    sql += ' AS ' + item.alias;
                 sql += RN;
             }
         }

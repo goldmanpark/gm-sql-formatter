@@ -2,6 +2,7 @@
 import * as nsp from 'node-sql-parser';
 import { FROM } from './clauses/FROM';
 import { SELECT } from './clauses/SELECT';
+import { WHERE } from './clauses/WHERE';
 import { Element, ElementType, Clause } from './definition';
 
 export class Statement implements Element{
@@ -20,7 +21,7 @@ export class Statement implements Element{
             case 'select':
                 this.items.push(new SELECT(ast, this.depth));
                 if(ast.from !== null) this.items.push(new FROM(ast.from, this.depth));
-                //this.items.push(new WHERE(ast.where, 0));
+                if(ast.where !== null) this.items.push(new WHERE(ast.where, 0));
                 break;
             default:
                 console.log('not Select');

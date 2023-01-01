@@ -29,7 +29,7 @@ export interface Element{
 
 export interface Clause extends Element{
     readonly clauseType: ClauseType
-    items: Array<string | Element>
+    items: Array<string | Element | Expression | Predicate>
 }
 
 export interface Expression{

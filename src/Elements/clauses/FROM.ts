@@ -40,7 +40,8 @@ export class FROM implements Clause
         return '';
     }
 
-    getSQL(): string{
+    getSQL(): string
+    {
         let indent = new Array(this.depth).fill(S4 + S4).join('') + (this.depth > 0 ? S4 : '');
         let sql = indent + S4 + S2 + 'FROM' + S2;
 
@@ -52,9 +53,8 @@ export class FROM implements Clause
             //Subquery(Statement)
             sql += '(' + this.items[0].getSQL() + indent + S4 + S4 + S4 + ')';
             if (this.items[0].alias !== null) 
-                sql += ' AS ' + this.items[0].alias;
-        }
-            
+                sql += ' AS ' + this.items[0].alias + RN;
+        }            
         
         //rest columns
         for (let i = 1; i < this.items.length; i++) 

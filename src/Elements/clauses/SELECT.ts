@@ -83,7 +83,7 @@ export class SELECT implements Clause
     getSQL(): string
     {
         let indent = new Array(this.depth).fill(S4 + S4).join('') + (this.depth > 0 ? S4 : '');
-        let sql = S4 + 'SELECT' + S2;
+        let sql = indent + S4 + 'SELECT' + S2;
         if(this.distinct) sql += 'DISTINCT';
         if(this.top > 0) sql += ('TOP ' + this.top.toString());
 

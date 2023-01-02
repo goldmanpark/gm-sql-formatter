@@ -1,3 +1,5 @@
+import { Statement } from "./Statement";
+
 export const S2 = '  ';
 export const S3 = '   ';
 export const S4 = '    ';
@@ -39,7 +41,7 @@ export interface Expression{
 }
 
 export interface Predicate{
-    lhs: string | Expression
+    lhs: string | Expression | Statement
     operator: string
-    rhs: string | Expression
+    rhs: string | Expression | Statement
 }

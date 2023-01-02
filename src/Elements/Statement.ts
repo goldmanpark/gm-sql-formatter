@@ -21,7 +21,7 @@ export class Statement implements Element{
             case 'select':
                 this.items.push(new SELECT(ast, this.depth));
                 if(ast.from !== null) this.items.push(new FROM(ast.from, this.depth));
-                if(ast.where !== null) this.items.push(new WHERE(ast.where, 0));
+                if(ast.where !== null) this.items.push(new WHERE(ast.where, this.depth));
                 break;
             default:
                 console.log('not Select');

@@ -1,18 +1,18 @@
 /* eslint-disable curly */
 import * as nsp from 'node-sql-parser';
-import { Clause, ClauseType, ElementType, Predicate, RN, S2, S3, S4 } from '../definition';
+import { Clause, ClauseType, ElementType, Expression, Predicate, RN, S2, S3, S4 } from '../definition';
 import { Statement } from '../Statement';
 
 export class WHERE implements Clause
 {
     elementType = ElementType.clause;
     clauseType = ClauseType.select;
-    items: Array<string | Predicate | Statement>;
+    items: Array<string | Predicate>;
     depth: number;
 
     constructor(ast: any, depth: number)
     {
-        this.items = new Array<string | Predicate | Statement>();
+        this.items = new Array<string | Predicate>();
         this.depth = depth;
         this.createPredicate(ast);
     }
@@ -21,26 +21,21 @@ export class WHERE implements Clause
     {
         try 
         {
-            if(item.type === 'binary_expr')
+            if(item.operator === 'AND' || item.operator === 'OR')
             {
-                if(item.operator === 'AND' || item.operator === 'OR')
-                {
-                    this.createPredicate(item.left);
-                    this.items.push(item.operator);
-                    this.createPredicate(item.right);
-                }
-                else
-                {
-                    let p: Predicate = {
-                        lhs : this.getChildValue(item.left),
-                        rhs : this.getChildValue(item.right),
-                        operator : item.operator
-                    };
-                    this.items.push(p);
-                }
+                this.createPredicate(item.left);
+                this.items.push(item.operator);
+                this.createPredicate(item.right);
             }
-            else if(item.ast !== null)
-                this.items.push(new Statement(item.ast, this.depth + 1));
+            else
+            {
+                let p: Predicate = {
+                    lhs : this.getChildValue(item.left),
+                    rhs : this.getChildValue(item.right),
+                    operator : item.operator
+                };
+                this.items.push(p);
+            }
         } 
         catch (error) 
         {
@@ -48,7 +43,7 @@ export class WHERE implements Clause
         }
     }
 
-    getChildValue(item: any): string
+    getChildValue(item: any): string | Expression | Statement
     {
         switch (item.type) 
         {
@@ -61,32 +56,35 @@ export class WHERE implements Clause
                 str += item.column;
                 return str;
             default:
-                return '';
+                break;
         }
+        if(item.ast !== null)
+            return new Statement(item.ast, this.depth + 1);
+        else
+            return '';
     }
 
     getSQL(): string
     {
         let indent = new Array(this.depth).fill(S4 + S4).join('') + (this.depth > 0 ? S4 : '');
-        let sql = S4 + ' WHERE' + S2;
-        console.log(this.items);
+        let sql = S4 + ' WHERE';
         
-        //for first line
-        const f: Predicate = this.items[0] as Predicate;
-        sql += f.lhs + ' ' + f.operator + ' ' + f.rhs + RN;
-
-        //rest columns
-        for (let i = 1; i < this.items.length; i++)
+        for (let i = 0; i < this.items.length; i++)
         {
             const x = this.items[i];
             if(typeof(x) === 'string') //AND, OR
                 sql += S4 + S3 + x;
-            else if(x instanceof Statement)
-            {
-                sql += S2 + '(' + S3 + x.getSQL().trim(); + ')';
-            }
             else //predicate
-                sql += S2 + x.lhs + ' ' + x.operator + ' ' + x.rhs + RN;
+            {
+                let l: string = x.lhs instanceof Statement 
+                    ? '(' + RN + indent + x.lhs.getSQL() + ')'
+                    : x.lhs.toString();
+                let r: string = x.rhs instanceof Statement
+                    ? '(' + RN + indent + x.rhs.getSQL() + ')'
+                    : x.rhs.toString();
+                sql += i === 0 ? '' : indent;
+                sql += S2 + l + ' ' + x.operator + ' ' + r + RN;
+            }                
         }
         
         return sql;

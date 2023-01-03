@@ -48,14 +48,16 @@ export class SELECT implements Clause
                     break;
                 case 'aggr_func': //aggregate function
                     let content = '';
-                    if(expr.args.type === 'column_ref'){
-
-                    }
-                    else if(expr.args.type === 'aggr_func'){
-
-                    }
-                    else if(expr.args.type === 'star'){
-                        content = '*';
+                    switch (expr.args.expr.type) {
+                        case 'star':
+                            content = '*'
+                            break;
+                        case 'column_ref':
+                            content += expr.args.expr.table === null ? '' : (expr.args.expr.table + '.');
+                            content += expr.args.expr.column;
+                            break;
+                        default:
+                            break;
                     }
                     str += (expr.name + '(' + content + ')');
                     break;
@@ -82,8 +84,8 @@ export class SELECT implements Clause
 
     getSQL(): string
     {
-        let indent = new Array(this.depth).fill(S4 + S4).join('') + (this.depth > 0 ? S4 : '');
-        let sql = indent + S4 + 'SELECT' + S2;
+        let indent = new Array(this.depth * 12 + 4).fill(' ').join('');
+        let sql = indent + 'SELECT' + S2;
         if(this.distinct) sql += 'DISTINCT';
         if(this.top > 0) sql += ('TOP ' + this.top.toString());
 
@@ -94,7 +96,7 @@ export class SELECT implements Clause
         {
             //Subquery(Statement)
             sql += '(' + S3 + this.items[0].getSQL().trim() + RN;
-            sql += indent + S4 + S4 + S4 + ')';
+            sql += indent + S4 + S4 + ')';
             if (this.items[0].alias !== null) 
                 sql += ' AS ' + this.items[0].alias;
             sql += RN;
@@ -105,12 +107,12 @@ export class SELECT implements Clause
         {
             const item = this.items[i];
             if(typeof(item) === 'string')
-                sql += indent + S4 + S4 + ',' + S3 + item + RN;
+                sql += indent + S4 + ',' + S3 + item + RN;
             else
             {
                 //Subquery
-                sql += indent + S4 + S4 + ',' + S3 + '(' + S3 + item.getSQL().trim() + RN;
-                sql += indent + S4 + S4 + S4 + ')';
+                sql += indent + S4 + ',' + S3 + '(' + S3 + item.getSQL().trim() + RN;
+                sql += indent + S4 + S4 + ')';
                 if (item.alias !== null) 
                     sql += ' AS ' + item.alias;
                 sql += RN;

@@ -1,6 +1,6 @@
 /* eslint-disable curly */
 import * as nsp from 'node-sql-parser';
-import { Clause, ClauseType, ElementType, S4, S2, S3, RN } from '../definition';
+import { Clause, ClauseType, ElementType, S4, S2, S3, RN, S6 } from '../definition';
 import { Statement } from '../Statement';
 
 export class FROM implements Clause
@@ -35,15 +35,17 @@ export class FROM implements Clause
         else if(item.expr.ast !== null)
         {
             //subquery
-            return new Statement(item.expr.ast, this.depth + 1);
+            let f = new Statement(item.expr.ast, this.depth + 1);
+            f.alias = item.as;
+            return f;
         }
         return '';
     }
 
     getSQL(): string
     {
-        let indent = new Array(this.depth).fill(S4 + S4).join('') + (this.depth > 0 ? S4 : '');
-        let sql = indent + S4 + S2 + 'FROM' + S2;
+        let indent = new Array(this.depth * 12 + 6).fill(' ').join('');
+        let sql = indent + 'FROM' + S2;
 
         //for first table item
         if(typeof(this.items[0]) === 'string')
@@ -51,9 +53,11 @@ export class FROM implements Clause
         else
         {
             //Subquery(Statement)
-            sql += '(' + this.items[0].getSQL() + indent + S4 + S4 + S4 + ')';
+            sql += '(' + S3 + this.items[0].getSQL().trim() + RN;
+            sql += indent + S6 + ')';
             if (this.items[0].alias !== null) 
-                sql += ' AS ' + this.items[0].alias + RN;
+                sql += ' AS ' + this.items[0].alias 
+            sql += RN;
         }            
         
         //rest columns
@@ -61,11 +65,11 @@ export class FROM implements Clause
         {
             const item = this.items[i];
             if (typeof(item) === 'string')
-                sql += indent + S4 + ',' + S3 + item + RN;
+                sql += indent + S2 + ',' + S3 + item + RN;
             else
             {
-                sql += indent + S4 + ',' + S3 + '(' + S3 + item.getSQL().trim() + RN;
-                sql += indent + S4 + S4 + S4 + ')';
+                sql += indent + S2 + ',' + S3 + '(' + S3 + item.getSQL().trim() + RN;
+                sql += indent + S6 + ')';
                 if (item.alias !== null) 
                     sql += ' AS ' + item.alias;
                 sql += RN;

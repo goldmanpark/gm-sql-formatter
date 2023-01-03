@@ -16,7 +16,7 @@ select 'AAA' AS X, 1 AS Y,  (select sysdate from dual) AS Z  from dual where 1=1
       FROM  (   SELECT  sysdate
                     ,   'AAA'
                   FROM  DUAL
-            ) AS X
+            ) AS X, Y, Z, (select 1) AS ZZ
 
 --https://www.complexsql.com/complex-sql-queries-examples-with-answers/
 Select E.id, E.name as ENAME from Employee E where Rowid= (select min(Rowid) from Employee);

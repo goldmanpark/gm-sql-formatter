@@ -66,7 +66,7 @@ export class WHERE implements Clause
 
     getSQL(): string
     {
-        let indent = new Array(this.depth).fill(S4 + S4).join('') + (this.depth > 0 ? S4 : '');
+        let indent = new Array(this.depth * 12 + 5).fill(' ').join('');
         let sql = S4 + ' WHERE';
         
         for (let i = 0; i < this.items.length; i++)
@@ -77,12 +77,11 @@ export class WHERE implements Clause
             else //predicate
             {
                 let l: string = x.lhs instanceof Statement 
-                    ? '(' + RN + indent + x.lhs.getSQL() + ')'
+                    ? '(' + RN + indent + S4 + S4 + S3 + x.lhs.getSQL().trim() + ')'
                     : x.lhs.toString();
                 let r: string = x.rhs instanceof Statement
-                    ? '(' + RN + indent + x.rhs.getSQL() + ')'
+                    ? '(' + RN + indent + S4 + S4 + S3 + x.rhs.getSQL().trim() + ')'
                     : x.rhs.toString();
-                sql += i === 0 ? '' : indent;
                 sql += S2 + l + ' ' + x.operator + ' ' + r + RN;
             }                
         }

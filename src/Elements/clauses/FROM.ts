@@ -7,12 +7,12 @@ export class FROM implements Clause
 {
     elementType = ElementType.clause;
     clauseType = ClauseType.from;
-    items: Array<string | Statement>;
+    items: Array<any>;
     depth: number;
 
     constructor(from: Array<nsp.From | nsp.Dual | any>, depth: number)
     {
-        this.items = new Array<string | Statement>();
+        this.items = new Array<any>();
         this.depth = depth;
 
         for (let i = 0; i < from.length; i++)
@@ -21,25 +21,20 @@ export class FROM implements Clause
         }
     }
 
-    createFROM(item: nsp.From | nsp.Dual | any): string | Statement
+    createFROM(item: nsp.From | nsp.Dual | any): any
     {
-        if (item.type === 'dual') 
-            return 'DUAL';
-        else if (item.table !== undefined)
-        {
-            if (item.as === null)
-                return item.table;
-            else
-                return item.table + ' AS ' + item.as;
-        }
-        else if(item.expr.ast !== null)
+        if(item.type === 'dual' || typeof(item.table) === 'string')
+            return item;
+        else if(item.expr !== null && item.expr.ast !== null)
         {
             //subquery
-            let f = new Statement(item.expr.ast, this.depth + 1);
-            f.alias = item.as;
-            return f;
+            return {
+                statement : new Statement(item.expr.ast, this.depth + 1),
+                on : item.on,
+                join : item.join,
+                as : item.as
+            };
         }
-        return '';
     }
 
     getSQL(): string
@@ -47,33 +42,42 @@ export class FROM implements Clause
         let indent = new Array(this.depth * 12 + 6).fill(' ').join('');
         let sql = indent + 'FROM' + S2;
 
-        //for first table item
-        if(typeof(this.items[0]) === 'string')
-            sql += (this.items[0] + RN);
-        else
-        {
-            //Subquery(Statement)
-            sql += '(' + S3 + this.items[0].getSQL().trim() + RN;
-            sql += indent + S6 + ')';
-            if (this.items[0].alias !== null) 
-                sql += ' AS ' + this.items[0].alias 
-            sql += RN;
-        }            
-        
         //rest columns
-        for (let i = 1; i < this.items.length; i++) 
+        for (let i = 0; i < this.items.length; i++)
         {
             const item = this.items[i];
-            if (typeof(item) === 'string')
+            if(item.type === 'dual')
                 sql += indent + S2 + ',' + S3 + item + RN;
             else
-            {
-                sql += indent + S2 + ',' + S3 + '(' + S3 + item.getSQL().trim() + RN;
-                sql += indent + S6 + ')';
-                if (item.alias !== null) 
-                    sql += ' AS ' + item.alias;
-                sql += RN;
+            {                
+                if(item.join)
+                    sql += (item.join === 'LEFT JOIN' ? ' LEFT JOIN' : item.join) + S2;
+                else
+                    sql += i === 0 ? '' : indent;
+
+                if(item.table)
+                {
+                    let db = item.db !== null ? item.db : '';
+                    sql += db + item.table;
+                }
+                else if (item.statement instanceof Statement)
+                {
+                    if(item.join)
+                    {
+                        sql += '(' + S3 + item.statement.getSQL().trim() + RN;
+                        sql += S6 + ')';
+                    }
+                    else 
+                    {
+                        sql += S2 + ',' + S3 + '(' + S3 + item.statement.getSQL().trim() + RN;
+                        sql += S6 + ')';
+                    }                    
+                }
             }
+
+            if (item.alias)
+                sql += ' AS ' + item.as;
+            sql += RN;
         }
         return sql;
     }

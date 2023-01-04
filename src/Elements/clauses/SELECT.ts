@@ -50,7 +50,7 @@ export class SELECT implements Clause
                     let content = '';
                     switch (expr.args.expr.type) {
                         case 'star':
-                            content = '*'
+                            content = '*';
                             break;
                         case 'column_ref':
                             content += expr.args.expr.table === null ? '' : (expr.args.expr.table + '.');

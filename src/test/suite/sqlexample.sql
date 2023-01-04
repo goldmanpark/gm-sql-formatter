@@ -18,6 +18,19 @@ select 'AAA' AS X, 1 AS Y,  (select sysdate from dual) AS Z  from dual where 1=1
                   FROM  DUAL
             ) AS X, Y, Z, (select 1) AS ZZ
 
+    SELECT  E.EMPID
+        ,   C.CCC
+        ,   J.X
+      FROM  Employee E
+INNER JOIN  Customer C
+        ON  C.EMPID = E.EMPID
+INNER JOIN  ( SELECT  A.X, A.Y FROM TEMP A
+                LEFT JOIN  TEMP B
+                on  B.X = A.X
+                where A.aaa = A.bbb + 1 ) AS J
+        ON  J.X = C.X
+     WHERE  1 = 1
+
 --https://www.complexsql.com/complex-sql-queries-examples-with-answers/
 Select E.id, E.name as ENAME from Employee E where Rowid= (select min(Rowid) from Employee);
 

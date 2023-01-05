@@ -39,21 +39,23 @@ export class FROM implements Clause
 
     getSQL(): string
     {
-        let indent = new Array(this.depth * 12 + 6).fill(' ').join('');
-        let sql = indent + 'FROM' + S2;
+        let fromIndent = new Array(this.depth * 12 + 6).fill(' ').join('');
+        let joinIndent = this.depth === 0 ? '' : new Array(this.depth * 12).fill(' ').join('');
+        let onIndent = fromIndent + S2;
+        let sql = fromIndent + 'FROM' + S2;
 
         //rest columns
         for (let i = 0; i < this.items.length; i++)
         {
             const item = this.items[i];
             if(item.type === 'dual')
-                sql += indent + S2 + ',' + S3 + item + RN;
+                sql += fromIndent + S2 + ',' + S3 + item + RN;
             else
-            {                
+            {
                 if(item.join)
-                    sql += (item.join === 'LEFT JOIN' ? ' LEFT JOIN' : item.join) + S2;
+                    sql += joinIndent + (item.join === 'LEFT JOIN' ? ' LEFT JOIN' : item.join) + S2;
                 else
-                    sql += i === 0 ? '' : indent;
+                    sql += i === 0 ? '' : fromIndent;
 
                 if(item.table)
                 {
@@ -67,17 +69,20 @@ export class FROM implements Clause
                         sql += '(' + S3 + item.statement.getSQL().trim() + RN;
                         sql += S6 + ')';
                     }
-                    else 
+                    else
                     {
                         sql += S2 + ',' + S3 + '(' + S3 + item.statement.getSQL().trim() + RN;
                         sql += S6 + ')';
-                    }                    
+                    }
                 }
             }
 
             if (item.alias)
                 sql += ' AS ' + item.as;
             sql += RN;
+
+            if(item.on)
+                sql += fromIndent + 'ON' + S2 + item.on.left + ' ' + item.on.operator + ' ' + item.on.right + RN;
         }
         return sql;
     }

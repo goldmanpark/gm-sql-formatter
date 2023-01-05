@@ -67,7 +67,7 @@ export class WHERE implements Clause
     getSQL(): string
     {
         let indent = new Array(this.depth * 12 + 5).fill(' ').join('');
-        let sql = S4 + ' WHERE';
+        let sql = indent + 'WHERE';
         
         for (let i = 0; i < this.items.length; i++)
         {

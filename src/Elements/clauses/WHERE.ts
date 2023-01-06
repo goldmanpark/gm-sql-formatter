@@ -28,34 +28,23 @@ export class WHERE implements Clause
             this.createPredicate(item.right);
         }
         else
-        {
-            let p: Predicate = new Predicate(item, this.depth);
-            this.items.push(p);
-        }
+            this.items.push(new Predicate(item, this.depth));
     }
 
     getSQL(): string
     {
         let indent = new Array(this.depth * 12 + 5).fill(' ').join('');
         let sql = indent + 'WHERE';
-        
+
         for (let i = 0; i < this.items.length; i++)
         {
             const x = this.items[i];
             if(typeof(x) === 'string') //AND, OR
-                sql += S4 + S3 + x;
-            else //predicate
-            {
-                let l: string = x.lhs instanceof Statement 
-                    ? '(' + RN + indent + S4 + S4 + S3 + x.lhs.getSQL().trim() + ')'
-                    : x.lhs.toString();
-                let r: string = x.rhs instanceof Statement
-                    ? '(' + RN + indent + S4 + S4 + S3 + x.rhs.getSQL().trim() + ')'
-                    : x.rhs.toString();
-                sql += S2 + l + ' ' + x.operator + ' ' + r + RN;
-            }                
+                sql += indent + S2 + x;
+            else if(x instanceof Predicate)
+                sql += S2 + x.getSQL() + RN;
         }
-        
+
         return sql;
     }
 }

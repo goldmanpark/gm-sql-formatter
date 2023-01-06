@@ -31,6 +31,16 @@ INNER JOIN  ( SELECT  A.X, A.Y FROM TEMP A
         ON  J.X = C.X
         AND J.XX > 100 + C.XX
      WHERE  1 = 1
+     and 1 = 1 + 0
+
+select *
+  from (
+    select X.A, Y.B
+    from TABLE_X AS X
+    join TABLE_Y AS Y on Y.A = X.A and 1=1
+    join (select 1 AS aaa from K) K on K.aaa = X.B
+    where 1=1 and 'a' <> 'b'
+  )
 
 --https://www.complexsql.com/complex-sql-queries-examples-with-answers/
 Select E.id, E.name as ENAME from Employee E where Rowid= (select min(Rowid) from Employee);

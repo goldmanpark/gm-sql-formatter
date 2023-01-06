@@ -25,7 +25,8 @@ export class FROM implements Clause
                 this.items.push('DUAL');
             else if(item.table)
             {
-                let t = item.db ? item.db + '.' + item.table : item.table;                
+                let t = item.db ? item.db + '.' + item.table : item.table;
+                if(item.as) t += ' AS ' + item.as;
                 this.items.push(t);
             }
             else if(item.expr && item.expr.ast)
@@ -40,7 +41,7 @@ export class FROM implements Clause
             }
         }
     }
-    
+
     createPredicate(expr: any)
     {
         if(expr.operator === 'AND' || expr.operator === 'OR')
@@ -69,7 +70,7 @@ export class FROM implements Clause
             const item = this.items[i];
             if(typeof(item) === 'string')
             {
-                switch (item) 
+                switch (item)
                 {
                     case 'ON':
                     case 'OR':
@@ -80,15 +81,20 @@ export class FROM implements Clause
                         break;
                     default:
                         if(item.includes(' JOIN'))
-                            sql += item + S2;
+                            sql += joinIndent + (item.includes('LEFT') ? ' ' : '') + item + S2;
                         else
                             sql += item + RN;
                         break;
                 }
             }
-            else{
+            else
+            {
                 if(item instanceof Statement)
-                    sql += joinIndent + '(' + S3 + item.getSQL().trim() + ')';
+                {
+                    sql += '(' + S3 + item.getSQL().trim() + RN;
+                    sql += fromIndent + S6 + ')';
+                    if(item.alias) sql += ' AS ' + item.alias;
+                }
                 else if(item instanceof Predicate)
                     sql += item.getSQL();
                 sql += RN;

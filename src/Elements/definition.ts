@@ -1,4 +1,5 @@
-import { Statement } from "./Statement";
+import { Expression } from "./Expression";
+import { Predicate } from "./Predicate";
 
 export const S2 = '  ';
 export const S3 = '   ';
@@ -32,16 +33,4 @@ export interface Element{
 export interface Clause extends Element{
     readonly clauseType: ClauseType
     items: Array<string | Element | Expression | Predicate | any>
-}
-
-export interface Expression{
-    lhs: string | Expression
-    operator: string
-    rhs: string | Expression
-}
-
-export interface Predicate{
-    lhs: string | Expression | Statement
-    operator: string
-    rhs: string | Expression | Statement
 }

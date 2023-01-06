@@ -1,7 +1,9 @@
 /* eslint-disable curly */
 import * as nsp from 'node-sql-parser';
-import { Clause, ClauseType, ElementType, Expression, Predicate, RN, S2, S3, S4 } from '../definition';
+import { Clause, ClauseType, ElementType, RN, S2, S3, S4 } from '../definition';
 import { Statement } from '../Statement';
+import { Expression } from '../Expression';
+import { Predicate } from '../Predicate';
 
 export class WHERE implements Clause
 {
@@ -19,49 +21,17 @@ export class WHERE implements Clause
 
     createPredicate(item: any)
     {
-        try 
+        if(item.operator === 'AND' || item.operator === 'OR')
         {
-            if(item.operator === 'AND' || item.operator === 'OR')
-            {
-                this.createPredicate(item.left);
-                this.items.push(item.operator);
-                this.createPredicate(item.right);
-            }
-            else
-            {
-                let p: Predicate = {
-                    lhs : this.getChildValue(item.left),
-                    rhs : this.getChildValue(item.right),
-                    operator : item.operator
-                };
-                this.items.push(p);
-            }
-        } 
-        catch (error) 
-        {
-            console.log(error);
+            this.createPredicate(item.left);
+            this.items.push(item.operator);
+            this.createPredicate(item.right);
         }
-    }
-
-    getChildValue(item: any): string | Expression | Statement
-    {
-        switch (item.type) 
-        {
-            case 'string':
-            case 'number':
-                return item.value.toString();
-            case 'column_ref':
-                let str = '';
-                str += item.table === null ? '' : (item.table + '.');
-                str += item.column;
-                return str;
-            default:
-                break;
-        }
-        if(item.ast !== null)
-            return new Statement(item.ast, this.depth + 1);
         else
-            return '';
+        {
+            let p: Predicate = new Predicate(item, this.depth);
+            this.items.push(p);
+        }
     }
 
     getSQL(): string

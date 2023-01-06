@@ -29,6 +29,7 @@ INNER JOIN  ( SELECT  A.X, A.Y FROM TEMP A
                 on  B.X = A.X
                 where A.aaa = A.bbb + 1 ) AS J
         ON  J.X = C.X
+        AND J.XX > 100 + C.XX
      WHERE  1 = 1
 
 --https://www.complexsql.com/complex-sql-queries-examples-with-answers/

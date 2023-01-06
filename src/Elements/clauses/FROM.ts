@@ -2,38 +2,57 @@
 import * as nsp from 'node-sql-parser';
 import { Clause, ClauseType, ElementType, S4, S2, S3, RN, S6 } from '../definition';
 import { Statement } from '../Statement';
+import { Predicate } from '../Predicate';
 
 export class FROM implements Clause
 {
     elementType = ElementType.clause;
     clauseType = ClauseType.from;
-    items: Array<any>;
+    items: Array<string | Statement | 'ON' | 'AND' | 'OR' | Predicate>;
     depth: number;
 
     constructor(from: Array<nsp.From | nsp.Dual | any>, depth: number)
     {
-        this.items = new Array<any>();
+        this.items = new Array<string | Statement | 'ON' | 'AND' | 'OR' | Predicate>();
         this.depth = depth;
 
         for (let i = 0; i < from.length; i++)
         {
-            this.items.push(this.createFROM(from[i]));
+            const item = from[i];
+            if(item.join)
+                this.items.push(item.join);
+            if(item.type === 'dual')
+                this.items.push('DUAL');
+            else if(item.table)
+            {
+                let t = item.db ? item.db + '.' + item.table : item.table;                
+                this.items.push(t);
+            }
+            else if(item.expr && item.expr.ast)
+            {
+                let x = new Statement(item.expr.ast, this.depth + 1);
+                x.alias = item.as;
+                this.items.push(x);
+            }
+            if(item.on){
+                this.items.push('ON');
+                this.createPredicate(item.on);
+            }
         }
     }
-
-    createFROM(item: nsp.From | nsp.Dual | any): any
+    
+    createPredicate(expr: any)
     {
-        if(item.type === 'dual' || typeof(item.table) === 'string')
-            return item;
-        else if(item.expr !== null && item.expr.ast !== null)
+        if(expr.operator === 'AND' || expr.operator === 'OR')
         {
-            //subquery
-            return {
-                statement : new Statement(item.expr.ast, this.depth + 1),
-                on : item.on,
-                join : item.join,
-                as : item.as
-            };
+            this.createPredicate(expr.left);
+            this.items.push(expr.operator);
+            this.createPredicate(expr.right);
+        }
+        else
+        {
+            let p: Predicate = new Predicate(expr, this.depth);
+            this.items.push(p);
         }
     }
 
@@ -48,41 +67,32 @@ export class FROM implements Clause
         for (let i = 0; i < this.items.length; i++)
         {
             const item = this.items[i];
-            if(item.type === 'dual')
-                sql += fromIndent + S2 + ',' + S3 + item + RN;
-            else
+            if(typeof(item) === 'string')
             {
-                if(item.join)
-                    sql += joinIndent + (item.join === 'LEFT JOIN' ? ' LEFT JOIN' : item.join) + S2;
-                else
-                    sql += i === 0 ? '' : fromIndent;
-
-                if(item.table)
+                switch (item) 
                 {
-                    let db = item.db !== null ? item.db : '';
-                    sql += db + item.table;
-                }
-                else if (item.statement instanceof Statement)
-                {
-                    if(item.join)
-                    {
-                        sql += '(' + S3 + item.statement.getSQL().trim() + RN;
-                        sql += S6 + ')';
-                    }
-                    else
-                    {
-                        sql += S2 + ',' + S3 + '(' + S3 + item.statement.getSQL().trim() + RN;
-                        sql += S6 + ')';
-                    }
+                    case 'ON':
+                    case 'OR':
+                        sql += onIndent + 'ON' + S2;
+                        break;
+                    case 'AND':
+                        sql += fromIndent + ' ' + 'AND' + S2;
+                        break;
+                    default:
+                        if(item.includes(' JOIN'))
+                            sql += item + S2;
+                        else
+                            sql += item + RN;
+                        break;
                 }
             }
-
-            if (item.alias)
-                sql += ' AS ' + item.as;
-            sql += RN;
-
-            if(item.on)
-                sql += fromIndent + 'ON' + S2 + item.on.left + ' ' + item.on.operator + ' ' + item.on.right + RN;
+            else{
+                if(item instanceof Statement)
+                    sql += joinIndent + '(' + S3 + item.getSQL().trim() + ')';
+                else if(item instanceof Predicate)
+                    sql += item.getSQL();
+                sql += RN;
+            }
         }
         return sql;
     }

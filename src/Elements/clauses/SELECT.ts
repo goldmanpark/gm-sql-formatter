@@ -1,13 +1,14 @@
 /* eslint-disable curly */
 import * as nsp from 'node-sql-parser';
 import { Clause, ClauseType, ElementType, RN, S2, S3, S4 } from '../definition';
+import { CASE } from '../expressions/CASE';
 import { Statement } from '../Statement';
 
 export class SELECT implements Clause
 {
     elementType = ElementType.clause;
     clauseType = ClauseType.select;
-    items: Array<string | Statement>;
+    items: Array<string | Statement | CASE>;
     depth: number;
 
     distinct: boolean = false;
@@ -29,7 +30,7 @@ export class SELECT implements Clause
         }
     }
 
-    createCOLUMN(col: nsp.Column): string | Statement
+    createCOLUMN(col: nsp.Column): string | Statement | CASE
     {
         try 
         {
@@ -61,6 +62,8 @@ export class SELECT implements Clause
                     }
                     str += (expr.name + '(' + content + ')');
                     break;
+                case 'case':
+                    return new CASE(expr.args, this.depth);
                 default:
                     if(expr.ast !== null)
                     {
@@ -92,7 +95,7 @@ export class SELECT implements Clause
         //for first line
         if(typeof(this.items[0]) === 'string')
             sql += (this.items[0] + RN);
-        else
+        else if(this.items[0] instanceof Statement)
         {
             //Subquery(Statement)
             sql += '(' + S3 + this.items[0].getSQL().trim() + RN;
@@ -101,6 +104,10 @@ export class SELECT implements Clause
                 sql += ' AS ' + this.items[0].alias;
             sql += RN;
         }
+        else if(this.items[0] instanceof CASE)
+        {
+            sql += this.items[0].getSQL();
+        }
 
         //rest columns
         for (let i = 1; i < this.items.length; i++)
@@ -108,7 +115,7 @@ export class SELECT implements Clause
             const item = this.items[i];
             if(typeof(item) === 'string')
                 sql += indent + S4 + ',' + S3 + item + RN;
-            else
+            else if(item instanceof Statement)
             {
                 //Subquery
                 sql += indent + S4 + ',' + S3 + '(' + S3 + item.getSQL().trim() + RN;
@@ -116,6 +123,10 @@ export class SELECT implements Clause
                 if (item.alias !== null) 
                     sql += ' AS ' + item.alias;
                 sql += RN;
+            }
+            else if(item instanceof CASE)
+            {
+                sql += item.getSQL();
             }
         }
         return sql;

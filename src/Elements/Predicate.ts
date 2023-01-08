@@ -23,21 +23,31 @@ export class Predicate implements Element
 
     getSide(source: any): string | Expression | Statement
     {
-        if(source.ast)
-            return new Statement(source.ast, this.depth + 1);
-        switch (source.type) {
-            case 'column_ref':
-                let s = '';
-                if(source.db) s += source.db + '.';
-                if(source.table) s += source.table + '.';
-                if(source.column) s += source.column;
-                return s;
-            case 'number':
-                return source.value.toString();
-            case 'binary_expr':
-                return new Expression(source, this.depth);
-            default:
-                return "'" + source.value.toString() + "'";
+        try
+        {
+            if(source.ast)
+                return new Statement(source.ast, this.depth + 1);
+            switch (source.type) {
+                case 'column_ref':
+                    let s = '';
+                    if(source.db) s += source.db + '.';
+                    if(source.table) s += source.table + '.';
+                    if(source.column) s += source.column;
+                    return s;
+                case 'number':
+                    return source.value.toString();
+                case 'binary_expr':
+                    return new Expression(source, this.depth);
+                case 'null':
+                    return 'NULL';
+                default:
+                    return "'" + source.value.toString() + "'";
+            }
+        }
+        catch (error)
+        {
+            console.log(error);
+            return '';
         }
     }
 

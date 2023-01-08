@@ -33,7 +33,12 @@ INNER JOIN  ( SELECT  A.X, A.Y FROM TEMP A
      WHERE  1 = 1
      and 1 = 1 + 0
 
-select *
+select 
+case when 1=1 then X.a
+when 1 is null then 10
+when 1 is null then 'xxx'
+when 1 < 2 then X.b + Y.B
+else X.b % 10 end
   from (
     select X.A, Y.B
     from TABLE_X AS X

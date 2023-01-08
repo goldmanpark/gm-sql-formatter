@@ -33,6 +33,8 @@ export class Expression implements Element
                 return s;
             case 'number':
                 return source.value.toString();
+            case 'null':
+                return 'NULL';
             default:
                 return "'" + source.value.toString() + "'";
         }

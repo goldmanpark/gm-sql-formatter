@@ -41,6 +41,12 @@ export class SELECT implements Clause
                 case 'number':
                     str += expr.value.toString();
                     break;
+                case 'null':
+                    str += 'NULL';
+                    break;
+                case 'var':
+                    str += expr.prefix + expr.name;
+                    break;
                 case 'single_quote_string':
                     str += ("'" + expr.value.toString() + "'");
                     break;

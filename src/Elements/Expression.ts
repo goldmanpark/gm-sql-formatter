@@ -2,15 +2,16 @@
 import * as nsp from 'node-sql-parser';
 import { Element, ElementType, RN, S2, S3, S4 } from './definition';
 import { Statement } from './Statement';
+import { Function } from './expressions/function';
 
 export class Expression implements Element
 {
     elementType = ElementType.expression;
     depth: number;
 
-    lhs: string | Expression | Statement;
+    lhs: string | Expression | Statement | Function;
     operator: '+' | '-' | '/' | '*' | '%';
-    rhs: string | Expression | Statement;
+    rhs: string | Expression | Statement | Function;
 
     constructor(ast: any, depth: number)
     {
@@ -20,7 +21,7 @@ export class Expression implements Element
         this.rhs = this.getSide(ast.right);
     }
 
-    getSide(source: any): string | Expression | Statement
+    getSide(source: any): string | Expression | Statement | Function
     {
         if(source.ast)
             return new Statement(source.ast, this.depth + 1);
@@ -35,6 +36,11 @@ export class Expression implements Element
                 return source.value.toString();
             case 'null':
                 return 'NULL';
+            case 'var':
+                return source.prefix + source.name;
+            case 'function':
+            case 'aggr_func': //aggregate function
+                return new Function(source, this.depth + 1);
             default:
                 return "'" + source.value.toString() + "'";
         }
@@ -47,7 +53,7 @@ export class Expression implements Element
             sql += this.lhs;
         else if(this.lhs instanceof Statement)
             sql += '(' + this.lhs.getSQL().trim() + ')';
-        else if(this.lhs instanceof Expression)
+        else
             sql += this.lhs.getSQL().trim();
 
         sql += ' ' + this.operator + ' ';
@@ -56,7 +62,7 @@ export class Expression implements Element
             sql += this.rhs;
         else if(this.rhs instanceof Statement)
             sql += '(' + this.rhs.getSQL().trim() + ')';
-        else if(this.rhs instanceof Expression)
+        else
             sql += this.rhs.getSQL().trim();
         return sql;
     }

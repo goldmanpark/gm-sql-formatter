@@ -26,6 +26,8 @@ export class Function implements Element
                 {
                     case 'star':
                         return '*';
+                    case 'var':
+                        return param.prefix + param.name;
                     case 'function':
                         return new Function(param, this.depth + 1);
                     case 'single_quote_string':

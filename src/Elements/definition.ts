@@ -13,7 +13,8 @@ export enum ElementType{
     clause,
     identifier,
     expression,
-    predicate
+    predicate,
+    function
 }
 
 export enum ClauseType{
@@ -21,6 +22,7 @@ export enum ClauseType{
     from,
     where,
     groupby,
+    having,
     orderby
 }
 

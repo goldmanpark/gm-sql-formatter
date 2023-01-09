@@ -86,4 +86,13 @@ GROUP BY
 	country.id,
 	country.country_name_eng
 HAVING AVG(ISNULL(DATEDIFF(SECOND, call.start_time, call.end_time),0)) > (SELECT AVG(DATEDIFF(SECOND, call.start_time, call.end_time)) FROM callx)
+AND callx.start_time > getdate()
 ORDER BY calls DESC, country.id ASC;
+
+
+  select  getdate() AS dt
+  ,       ISNULL(NULLIF(SUB.s, 0), 'N/A') as RESULT
+  from    MAIN AS M
+  join    (select sub.id, sum(CASE WHEN sub.id % 2 = 0 THEN 1 ELSE 0 END) s from SUB where sub.id > 10 group by sub.id) as SUB
+  on  sub.id = M.id
+  order by sub.id

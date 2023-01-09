@@ -2,6 +2,7 @@
 import * as nsp from 'node-sql-parser';
 import { FROM } from './clauses/FROM';
 import { GROUPBY } from './clauses/GROUPBY';
+import { HAVING } from './clauses/HAVING';
 import { ORDERBY } from './clauses/ORDERBY';
 import { SELECT } from './clauses/SELECT';
 import { WHERE } from './clauses/WHERE';
@@ -25,6 +26,7 @@ export class Statement implements Element{
                 if(ast.from) this.items.push(new FROM(ast.from, this.depth));
                 if(ast.where) this.items.push(new WHERE(ast.where, this.depth));
                 if(ast.groupby) this.items.push(new GROUPBY(ast.groupby, this.depth));
+                if(ast.having) this.items.push(new HAVING(ast.having, this.depth));
                 if(ast.orderby) this.items.push(new ORDERBY(ast.orderby, this.depth));
                 break;
             default:

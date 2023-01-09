@@ -2,13 +2,14 @@
 import * as nsp from 'node-sql-parser';
 import { Clause, ClauseType, ElementType, RN, S2, S3, S4 } from '../definition';
 import { CASE } from '../expressions/CASE';
+import { Function } from '../expressions/function';
 import { Statement } from '../Statement';
 
 export class SELECT implements Clause
 {
     elementType = ElementType.clause;
     clauseType = ClauseType.select;
-    items: Array<string | Statement | CASE>;
+    items: Array<string | Statement | CASE | Function>;
     depth: number;
 
     distinct: boolean = false;
@@ -16,7 +17,7 @@ export class SELECT implements Clause
 
     constructor(ast: nsp.Select, depth: number)
     {
-        this.items = new Array<string | Statement>();
+        this.items = new Array<string | Statement | CASE | Function>();
         this.depth = depth;
         this.distinct = ast.distinct !== null;
 
@@ -30,9 +31,9 @@ export class SELECT implements Clause
         }
     }
 
-    createCOLUMN(col: nsp.Column): string | Statement | CASE
+    createCOLUMN(col: nsp.Column): string | Statement | CASE | Function
     {
-        try 
+        try
         {
             let expr: any = col.expr;
             let str = '';
@@ -47,23 +48,13 @@ export class SELECT implements Clause
                     str += expr.table === null ? '' : (expr.table + '.');
                     str += expr.column;
                     break;
-                case 'aggr_func': //aggregate function
-                    let content = '';
-                    switch (expr.args.expr.type) {
-                        case 'star':
-                            content = '*';
-                            break;
-                        case 'column_ref':
-                            content += expr.args.expr.table === null ? '' : (expr.args.expr.table + '.');
-                            content += expr.args.expr.column;
-                            break;
-                        default:
-                            break;
-                    }
-                    str += (expr.name + '(' + content + ')');
-                    break;
                 case 'case':
-                    return new CASE(expr.args, this.depth);
+                    return new CASE(expr.args, this.depth + 1);
+                case 'function':
+                case 'aggr_func': //aggregate function
+                    let f =  new Function(expr, this.depth + 1);
+                    if(col.as) f.alias = col.as;
+                    return f;
                 default:
                     if(expr.ast !== null)
                     {
@@ -77,57 +68,40 @@ export class SELECT implements Clause
 
             str += col.as === null ? '' : ' AS ' + col.as;
             return str;
-        } 
-        catch (error) 
+        }
+        catch (error)
         {
             console.log(error);
             return '';
-        }        
+        }
     }
 
     getSQL(): string
     {
         let indent = new Array(this.depth * 12 + 4).fill(' ').join('');
+        let colIndent = indent + S4 + ',' + S3;
         let sql = indent + 'SELECT' + S2;
         if(this.distinct) sql += 'DISTINCT';
         if(this.top > 0) sql += ('TOP ' + this.top.toString());
 
-        //for first line
-        if(typeof(this.items[0]) === 'string')
-            sql += (this.items[0] + RN);
-        else if(this.items[0] instanceof Statement)
-        {
-            //Subquery(Statement)
-            sql += '(' + S3 + this.items[0].getSQL().trim() + RN;
-            sql += indent + S4 + S4 + ')';
-            if (this.items[0].alias !== null) 
-                sql += ' AS ' + this.items[0].alias;
-            sql += RN;
-        }
-        else if(this.items[0] instanceof CASE)
-        {
-            sql += this.items[0].getSQL();
-        }
-
-        //rest columns
-        for (let i = 1; i < this.items.length; i++)
+        for (let i = 0; i < this.items.length; i++)
         {
             const item = this.items[i];
+            if(i > 0) sql += colIndent;
+
             if(typeof(item) === 'string')
-                sql += indent + S4 + ',' + S3 + item + RN;
+                sql += item + RN;
             else if(item instanceof Statement)
             {
                 //Subquery
-                sql += indent + S4 + ',' + S3 + '(' + S3 + item.getSQL().trim() + RN;
+                sql += '(' + S3 + item.getSQL().trim() + RN;
                 sql += indent + S4 + S4 + ')';
-                if (item.alias !== null) 
+                if (item.alias !== null)
                     sql += ' AS ' + item.alias;
                 sql += RN;
             }
-            else if(item instanceof CASE)
-            {
+            else
                 sql += item.getSQL();
-            }
         }
         return sql;
     }

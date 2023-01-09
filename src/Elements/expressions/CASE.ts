@@ -53,7 +53,7 @@ export class CASE implements Element
 
     getSQL(): string
     {
-        let indent = new Array(this.depth * 12 + 12).fill(' ').join('');
+        let indent = new Array(this.depth * 4 + 12).fill(' ').join('');
         let sql = 'CASE' + RN;
 
         //when & then

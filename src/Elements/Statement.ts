@@ -6,18 +6,18 @@ import { HAVING } from './clauses/HAVING';
 import { ORDERBY } from './clauses/ORDERBY';
 import { SELECT } from './clauses/SELECT';
 import { WHERE } from './clauses/WHERE';
-import { Element, ElementType, Clause, RN } from './definition';
+import { Element, ElementType, Clause, RN, S4, S3 } from './definition';
 
 export class Statement implements Element{
     elementType = ElementType.statement;
     depth: number;
-    items: Array<Clause>;
+    items: Array<Clause | string>;
     alias: string | null;
 
     constructor(ast: nsp.AST, depth: number)
     {
         this.depth = depth;
-        this.items = new Array<Clause>();
+        this.items = new Array<Clause | string>();
         this.alias = null;
 
         switch (ast.type) {
@@ -28,6 +28,13 @@ export class Statement implements Element{
                 if(ast.groupby) this.items.push(new GROUPBY(ast.groupby, this.depth));
                 if(ast.having) this.items.push(new HAVING(ast.having, this.depth));
                 if(ast.orderby) this.items.push(new ORDERBY(ast.orderby, this.depth));
+                
+                let u = ast as any;
+                if(u && u.union)
+                {
+                    this.items.push(u.union.toUpperCase());
+                    this.items = this.items.concat(new Statement(u._next, this.depth).items);
+                }
                 break;
             default:
                 console.log('not Select');
@@ -36,8 +43,24 @@ export class Statement implements Element{
 
     getSQL():string
     {
-        let str = '';
-        this.items.forEach(x => {str += x.getSQL();});
-        return str + RN;
+        let indent = new Array(this.depth * 12).fill(' ').join('');
+
+        return this.items.map((x) => {
+            if(typeof(x) === 'string'){//집합 연산자
+                switch (x) 
+                {
+                    case 'UNION':
+                    case 'MINUS':
+                        return RN + indent + S4 + ' ' + x + RN + RN;
+                    case 'UNION ALL':
+                    case 'INTERSECT':
+                        return RN + indent + ' ' + x + RN + RN;
+                    default:
+                        return RN + x + RN + RN;
+                }
+            }
+            else
+                return x.getSQL();
+        }).join('');
     }
 }

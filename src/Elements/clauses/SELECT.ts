@@ -55,7 +55,7 @@ export class SELECT implements Clause
                     str += expr.column;
                     break;
                 case 'case':
-                    return new CASE(expr.args, this.depth + 1);
+                    return new CASE(expr.args, this.depth);
                 case 'function':
                 case 'aggr_func': //aggregate function
                     let f =  new Function(expr, this.depth + 1);

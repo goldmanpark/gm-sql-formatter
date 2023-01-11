@@ -36,8 +36,10 @@ export class HAVING implements Clause{
         for (let i = 0; i < this.items.length; i++)
         {
             const x = this.items[i];
-            if(typeof(x) === 'string') //AND, OR
-                sql += indent + S2 + x;
+            if(typeof(x) === 'string' && x === 'AND')
+                sql += indent + S3 + x;
+            else if(typeof(x) === 'string' && x === 'OR')
+                sql += indent + S4 + x;
             else if(x instanceof Predicate)
                 sql += S2 + x.getSQL() + RN;
         }

@@ -10,13 +10,13 @@ select 'AAA' AS X, 1 AS Y,  (select sysdate from dual) AS Z  from dual where 1=1
       FROM  DUAL
      WHERE  1 = 1
        AND  2 = 2
-       AND  3 <> 4
+       AND  3 <> 4;
 
     SELECT  X.*
       FROM  (   SELECT  sysdate
                     ,   'AAA'
                   FROM  DUAL
-            ) AS X, Y, Z, (select 1) AS ZZ
+            ) AS X, Y, Z, (select 1) AS ZZ;
 
     SELECT  E.EMPID
         ,   C.CCC
@@ -31,7 +31,7 @@ INNER JOIN  ( SELECT  A.X, A.Y FROM TEMP A
         ON  J.X = C.X
         AND J.XX > 100 + C.XX
      WHERE  1 = 1
-     and 1 = 1 + 0
+     and 1 = 1 + 0;
 
 select 
 case when 1=1 then X.a
@@ -45,7 +45,7 @@ else X.b % 10 end
     join TABLE_Y AS Y on Y.A = X.A and 1=1
     join (select 1 AS aaa from K) K on K.aaa = X.B
     where 1=1 and 'a' <> 'b'
-  )
+  );
 
 --https://www.complexsql.com/complex-sql-queries-examples-with-answers/
 Select E.id, E.name as ENAME from Employee E where Rowid= (select min(Rowid) from Employee);

@@ -6,7 +6,7 @@ import { HAVING } from './clauses/HAVING';
 import { ORDERBY } from './clauses/ORDERBY';
 import { SELECT } from './clauses/SELECT';
 import { WHERE } from './clauses/WHERE';
-import { Element, ElementType, Clause } from './definition';
+import { Element, ElementType, Clause, RN } from './definition';
 
 export class Statement implements Element{
     elementType = ElementType.statement;
@@ -38,6 +38,6 @@ export class Statement implements Element{
     {
         let str = '';
         this.items.forEach(x => {str += x.getSQL();});
-        return str;
+        return str + RN;
     }
 }

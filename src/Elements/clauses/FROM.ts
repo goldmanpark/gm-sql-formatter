@@ -35,7 +35,8 @@ export class FROM implements Clause
                 x.alias = item.as;
                 this.items.push(x);
             }
-            if(item.on){
+            if(item.on)
+            {
                 this.items.push('ON');
                 this.createPredicate(item.on);
             }

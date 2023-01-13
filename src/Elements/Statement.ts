@@ -1,11 +1,12 @@
 /* eslint-disable curly */
 import * as nsp from 'node-sql-parser';
+import { WITH } from './clauses/WITH';
+import { SELECT } from './clauses/SELECT';
 import { FROM } from './clauses/FROM';
+import { WHERE } from './clauses/WHERE';
 import { GROUPBY } from './clauses/GROUPBY';
 import { HAVING } from './clauses/HAVING';
 import { ORDERBY } from './clauses/ORDERBY';
-import { SELECT } from './clauses/SELECT';
-import { WHERE } from './clauses/WHERE';
 import { Element, ElementType, Clause, RN, S4, S3 } from './definition';
 
 export class Statement implements Element{
@@ -22,6 +23,7 @@ export class Statement implements Element{
 
         switch (ast.type) {
             case 'select':
+                if(ast.with) this.items.push(new WITH(ast.with, this.depth));
                 this.items.push(new SELECT(ast, this.depth));
                 if(ast.from) this.items.push(new FROM(ast.from, this.depth));
                 if(ast.where) this.items.push(new WHERE(ast.where, this.depth));

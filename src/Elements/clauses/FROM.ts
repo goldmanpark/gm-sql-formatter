@@ -8,7 +8,7 @@ export class FROM implements Clause
 {
     elementType = ElementType.clause;
     clauseType = ClauseType.from;
-    items: Array<string | Statement | 'ON' | 'AND' | 'OR' | Predicate>;
+    items: Array<string | Statement | 'ON' | 'AND' | 'OR' | ',' | Predicate>;
     depth: number;
 
     constructor(from: Array<nsp.From | nsp.Dual | any>, depth: number)
@@ -19,8 +19,12 @@ export class FROM implements Clause
         for (let i = 0; i < from.length; i++)
         {
             const item = from[i];
+            //connection between table/subquery
             if(item.join)
                 this.items.push(item.join);
+            else if(i > 0)
+                this.items.push(',');
+
             if(item.type === 'dual')
                 this.items.push('DUAL');
             else if(item.table)
@@ -35,6 +39,8 @@ export class FROM implements Clause
                 x.alias = item.as;
                 this.items.push(x);
             }
+
+            //join + on
             if(item.on)
             {
                 this.items.push('ON');
@@ -79,6 +85,9 @@ export class FROM implements Clause
                         break;
                     case 'AND':
                         sql += fromIndent + ' ' + 'AND' + S2;
+                        break;
+                    case ',':
+                        sql += fromIndent + S2 + ',' + S3;
                         break;
                     default:
                         if(item.includes(' JOIN'))

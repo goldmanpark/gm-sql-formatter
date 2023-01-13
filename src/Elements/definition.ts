@@ -18,6 +18,7 @@ export enum ElementType{
 }
 
 export enum ClauseType{
+    with,
     select,
     from,
     where,

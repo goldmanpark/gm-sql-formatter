@@ -61,7 +61,7 @@ export class Expression implements Element
         if(typeof(this.rhs) === 'string')
             sql += this.rhs;
         else if(this.rhs instanceof Statement)
-            sql += '(' + this.rhs.getSQL().trim() + ')';
+            sql += '(' + RN + this.rhs.getSQL().trimEnd() + ')';
         else
             sql += this.rhs.getSQL().trim();
         return sql;

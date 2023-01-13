@@ -26,8 +26,6 @@ export class Predicate implements Element
     {
         try
         {
-            if(source.ast)
-                return new Statement(source.ast, this.depth + 1);
             switch (source.type) {
                 case 'column_ref':
                     let s = '';
@@ -46,6 +44,8 @@ export class Predicate implements Element
                 case 'function':
                 case 'aggr_func': //aggregate function
                     return new Function(source, this.depth + 1);
+                case 'expr_list':
+                    return new Statement(source.value[0].ast, this.depth + 1);
                 default:
                     return "'" + source.value.toString() + "'";
             }
@@ -72,7 +72,7 @@ export class Predicate implements Element
         if(typeof(this.rhs) === 'string')
             sql += this.rhs;
         else if(this.rhs instanceof Statement)
-            sql += '(' + this.rhs.getSQL().trim() + ')';
+            sql += '(' + RN + this.rhs.getSQL().trimEnd() + ')';
         else
             sql += this.rhs.getSQL().trim();
         return sql;

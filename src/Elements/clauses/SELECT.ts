@@ -55,7 +55,9 @@ export class SELECT implements Clause
                     str += expr.column;
                     break;
                 case 'case':
-                    return new CASE(expr.args, this.depth);
+                    let c = new CASE(expr.args, this.depth);
+                    if(col.as) c.alias = col.as;
+                    return c;
                 case 'function':
                 case 'aggr_func': //aggregate function
                     let f =  new Function(expr, this.depth + 1);
@@ -87,7 +89,7 @@ export class SELECT implements Clause
         let indent = new Array(this.depth * 12 + 4).fill(' ').join('');
         let colIndent = indent + S4 + ',' + S3;
         let sql = indent + 'SELECT' + S2;
-        if(this.distinct) sql += 'DISTINCT';
+        if(this.distinct) sql += 'DISTINCT' + ' ';
         if(this.top > 0) sql += ('TOP ' + this.top.toString());
 
         for (let i = 0; i < this.items.length; i++)
@@ -102,8 +104,7 @@ export class SELECT implements Clause
                 //Subquery
                 sql += '(' + S3 + item.getSQL().trim() + RN;
                 sql += indent + S4 + S4 + ')';
-                if (item.alias !== null)
-                    sql += ' AS ' + item.alias;
+                if (item.alias) sql += ' AS ' + item.alias;
                 sql += RN;
             }
             else

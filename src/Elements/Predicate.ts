@@ -11,7 +11,7 @@ export class Predicate implements Element
     depth: number;
 
     lhs: string | Expression | Statement | Function;
-    operator: '=' | '<' | '<=' | '>' | '>=' | 'IS' | 'IS NOT';
+    operator: '=' | '<' | '<=' | '>' | '>=' | 'IS' | 'IS NOT' | 'BETWEEN';
     rhs: string | Expression | Statement | Function;
 
     constructor(ast: any, depth: number)
@@ -45,7 +45,14 @@ export class Predicate implements Element
                 case 'aggr_func': //aggregate function
                     return new Function(source, this.depth + 1);
                 case 'expr_list':
-                    return new Statement(source.value[0].ast, this.depth + 1);
+                    if(this.operator === 'BETWEEN')
+                    {
+                        let l = this.createBETWEEN(source.value[0]);
+                        let r = this.createBETWEEN(source.value[1]);
+                        return l + ' AND ' + r;
+                    }                        
+                    else
+                        return new Statement(source.value[0].ast, this.depth + 1);
                 default:
                     return "'" + source.value.toString() + "'";
             }
@@ -54,6 +61,21 @@ export class Predicate implements Element
         {
             console.log(error);
             return '';
+        }
+    }
+
+    createBETWEEN(side: any): string
+    {
+        switch (side.type) {
+            case 'number':
+                return side.value.toString();
+            case 'single_quote_string':
+                return "'" + side.value.toString() + "'";
+            case 'function':
+                let f =  new Function(side.value, this.depth + 1);
+                return f.getSQL();
+            default:
+                return '';
         }
     }
 

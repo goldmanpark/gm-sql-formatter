@@ -95,4 +95,6 @@ ORDER BY calls DESC, country.id ASC;
   from    MAIN AS M
   join    (select sub.id, sum(CASE WHEN sub.id % 2 = 0 THEN 1 ELSE 0 END) s from SUB where sub.id > 10 group by sub.id) as SUB
   on  sub.id = M.id
-  order by sub.id
+  order by sub.id;
+
+  select * from X where x.dt between '2022.01.01' and '2022.12.31';

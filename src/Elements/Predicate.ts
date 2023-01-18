@@ -4,15 +4,16 @@ import { Element, ElementType, RN, S2, S3, S4 } from './definition';
 import { Statement } from './Statement';
 import { Expression } from './Expression';
 import { Function } from './expressions/function';
+import { BETWEEN } from './expressions/BETWEEN';
 
 export class Predicate implements Element
 {
     elementType = ElementType.predicate;
     depth: number;
 
-    lhs: string | Expression | Statement | Function;
-    operator: '=' | '<' | '<=' | '>' | '>=' | 'IS' | 'IS NOT' | 'BETWEEN';
-    rhs: string | Expression | Statement | Function;
+    lhs: string | Expression | Statement | Function | BETWEEN;
+    operator: '=' | '<' | '<=' | '>' | '>=' | 'IS' | 'IS NOT' | 'BETWEEN' | 'NOT BETWEEN';
+    rhs: string | Expression | Statement | Function | BETWEEN;
 
     constructor(ast: any, depth: number)
     {
@@ -22,7 +23,7 @@ export class Predicate implements Element
         this.rhs = this.getSide(ast.right);
     }
 
-    getSide(source: any): string | Expression | Statement | Function
+    getSide(source: any): string | Expression | Statement | Function | BETWEEN
     {
         try
         {
@@ -45,12 +46,8 @@ export class Predicate implements Element
                 case 'aggr_func': //aggregate function
                     return new Function(source, this.depth + 1);
                 case 'expr_list':
-                    if(this.operator === 'BETWEEN')
-                    {
-                        let l = this.createBETWEEN(source.value[0]);
-                        let r = this.createBETWEEN(source.value[1]);
-                        return l + ' AND ' + r;
-                    }                        
+                    if(this.operator === 'BETWEEN' || this.operator === 'NOT BETWEEN')
+                        return new BETWEEN(source, this.depth + 1);                        
                     else
                         return new Statement(source.value[0].ast, this.depth + 1);
                 default:
@@ -61,21 +58,6 @@ export class Predicate implements Element
         {
             console.log(error);
             return '';
-        }
-    }
-
-    createBETWEEN(side: any): string
-    {
-        switch (side.type) {
-            case 'number':
-                return side.value.toString();
-            case 'single_quote_string':
-                return "'" + side.value.toString() + "'";
-            case 'function':
-                let f =  new Function(side.value, this.depth + 1);
-                return f.getSQL();
-            default:
-                return '';
         }
     }
 

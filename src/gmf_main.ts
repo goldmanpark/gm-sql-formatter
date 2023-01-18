@@ -37,6 +37,6 @@ export function formatSQL(ast: nsp.AST, depth: number = 0): string
     {
         console.log(error);
         let parser: nsp.Parser = new nsp.Parser();
-        return parser.sqlify(ast);
+        return parser.sqlify(ast, {database : 'transactsql'});
     }
 }

@@ -9,12 +9,12 @@ export class WHERE implements Clause
 {
     elementType = ElementType.clause;
     clauseType = ClauseType.select;
-    items: Array<string | Predicate>;
+    items: Array<'AND' | 'OR' | 'EXISTS' | 'NOT EXISTS' | Predicate | Statement>;
     depth: number;
 
     constructor(ast: any, depth: number)
     {
-        this.items = new Array<string | Predicate>();
+        this.items = new Array<'AND' | 'OR' | 'EXISTS' | 'NOT EXISTS' | Predicate | Statement>();
         this.depth = depth;
         this.createPredicate(ast);
     }
@@ -27,6 +27,16 @@ export class WHERE implements Clause
             this.items.push(item.operator);
             this.createPredicate(item.right);
         }
+        else if(item.name === 'EXISTS')
+        {
+            this.items.push('EXISTS');
+            this.items.push(new Statement(item.args.value[0].ast, this.depth + 1));
+        }
+        else if(item.operator === 'NOT EXISTS')
+        {
+            this.items.push('NOT EXISTS');
+            this.items.push(new Statement(item.expr.ast, this.depth + 1));
+        }
         else
             this.items.push(new Predicate(item, this.depth));
     }
@@ -38,11 +48,26 @@ export class WHERE implements Clause
 
         for (let i = 0; i < this.items.length; i++)
         {
-            const x = this.items[i];
-            if(typeof(x) === 'string') //AND, OR
-                sql += indent + S2 + x;
+            const x = this.items[i]; 
+            if(typeof(x) === 'string')
+            {
+                switch (x) {
+                    case 'AND': 
+                        sql += indent + S2 + x; break;
+                    case 'OR': 
+                        sql += indent + S3 + x; break;
+                    case 'EXISTS':
+                    case 'NOT EXISTS':
+                        sql += S2 + x + RN; break;
+                    default:
+                        break;
+                }
+            }
+                
             else if(x instanceof Predicate)
                 sql += S2 + x.getSQL() + RN;
+            else if(x instanceof Statement)
+                sql += indent + S4 + S3 + '(' + S3 + x.getSQL().trim() + ')' + RN;
         }
 
         return sql;

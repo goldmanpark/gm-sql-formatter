@@ -50,10 +50,6 @@ else X.b % 10 end
 --https://www.complexsql.com/complex-sql-queries-examples-with-answers/
 Select E.id, E.name as ENAME from Employee E where Rowid= (select min(Rowid) from Employee);
 
---https://www.sqlshack.com/sql-insert-into-select-statement-overview-and-examples/
-Insert into Employees (ID, Name) values (1,'raj')
-Insert into Employees values (2,'raj')
-
 /*https://www.complexsql.com/complex-sql-queries-examples-with-answers/*/
 Select * from Employee e where rownum <=5
 
@@ -98,3 +94,13 @@ ORDER BY calls DESC, country.id ASC;
   order by sub.id;
 
   select * from X where x.dt between '2022.01.01' and '2022.12.31';
+
+--https://www.w3schools.com/sql/sql_exists.asp
+SELECT SupplierName
+FROM Suppliers
+WHERE EXISTS (SELECT ProductName FROM Products WHERE Products.SupplierID = Suppliers.supplierID AND Price < 20)
+and 1=1 or null is null;
+
+SELECT SupplierName
+FROM Suppliers
+WHERE NOT EXISTS (SELECT ProductName FROM Products WHERE Products.SupplierID = Suppliers.supplierID AND Price < 20);

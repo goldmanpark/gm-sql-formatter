@@ -46,8 +46,7 @@ export class Statement implements Element{
     getSQL():string
     {
         let indent = new Array(this.depth * 12).fill(' ').join('');
-
-        return this.items.map((x) => {
+        let sql = this.items.map((x) => {
             if(typeof(x) === 'string'){//집합 연산자
                 switch (x) 
                 {
@@ -64,5 +63,10 @@ export class Statement implements Element{
             else
                 return x.getSQL();
         }).join('');
+
+        if(this.depth > 0)
+            return sql + RN;
+        else
+            return sql.trimEnd() + ';' + RN + RN;
     }
 }

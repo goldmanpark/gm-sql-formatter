@@ -3,7 +3,7 @@ import * as nsp from 'node-sql-parser';
 import { Element, ElementType, RN, S2, S3, S4 } from './definition';
 import { Statement } from './Statement';
 import { Expression } from './Expression';
-import { Function } from './expressions/function';
+import { Function } from './expressions/Function';
 import { BETWEEN } from './expressions/BETWEEN';
 
 export class Predicate implements Element

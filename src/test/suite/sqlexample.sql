@@ -50,7 +50,7 @@ else X.b % 10 end
 --https://www.complexsql.com/complex-sql-queries-examples-with-answers/
 Select E.id, E.name as ENAME from Employee E where Rowid= (select min(Rowid) from Employee);
 
-/*https://www.complexsql.com/complex-sql-queries-examples-with-answers/*/
+--https://www.complexsql.com/complex-sql-queries-examples-with-answers/*/
 Select * from Employee e where rownum <=5
 
 union
@@ -104,3 +104,5 @@ and 1=1 or null is null;
 SELECT SupplierName
 FROM Suppliers
 WHERE NOT EXISTS (SELECT ProductName FROM Products WHERE Products.SupplierID = Suppliers.supplierID AND Price < 20);
+
+select top 4 xxx from x

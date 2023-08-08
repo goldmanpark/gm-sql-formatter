@@ -2,7 +2,7 @@
 import { Element, ElementType, RN, S2, S3, S4 } from '../definition';
 import { Statement } from '../Statement';
 import { Expression } from "../Expression";
-import { Function } from './function';
+import { Function } from './Function';
 
 export class BETWEEN implements Element
 {

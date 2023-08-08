@@ -2,7 +2,7 @@
 import * as nsp from 'node-sql-parser';
 import { Clause, ClauseType, ElementType, RN, S2, S3, S4 } from '../definition';
 import { CASE } from '../expressions/CASE';
-import { Function } from '../expressions/function';
+import { Function } from '../expressions/Function';
 import { Statement } from '../Statement';
 
 export class SELECT implements Clause
